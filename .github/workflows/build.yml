@@ -93,10 +93,10 @@ jobs:
     - name: Package Name
       run: |
           if [[ "$RUNNER_OS" == "macOS" ]]; then
-            output_name="asepriet.dmg"
+            output_name="aseprite.dmg"
             mimetype="application/octet-stream"
           elif [[ "$RUNNER_OS" == "Windows" ]]; then
-            output_name="asprite.exe"
+            output_name="aseprite.exe"
             mimetype="application/vnd.microsoft.portable-executable"
           elif [[ "$RUNNER_OS" == "Linux" ]]; then
             output_name="aseprite.deb"
