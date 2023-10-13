@@ -90,18 +90,37 @@ jobs:
       run: |
         cd aseprite 
         cd build && ninja
+    
+    - name: Create release archive
+      if: runner.os == 'Linux'
+      run: |
+        cd ./aseprite/build/
+        zip -r build.zip *
+      
+    - name: Create release archive
+      if: runner.os == 'Windows'
+      run: |
+        cd ./aseprite/build/
+        powershell Compress-Archive -Path . -DestinationPath build.zip
+      
+    - name: Create release archive
+      if: runner.os == 'macOS'
+      run: |
+        cd ./aseprite/build/
+        zip -r build.zip *
+  
 
     - name: Package Name
       run: |
           if [[ ${{ runner.os }} == "macOS" ]]; then
-            output_name="aseprite.dmg"
-            mimetype="application/octet-stream"
+            output_name="macos-build.zip"
+            mimetype="application/zip"
           elif [[ ${{ runner.os }} == "Windows" ]]; then
-            output_name="aseprite.exe"
-            mimetype="application/vnd.microsoft.portable-executable"
+            output_name="windows-build.zip"
+            mimetype="application/zip"
           elif [[ ${{ runner.os }} == "Linux" ]]; then
-            output_name="aseprite.deb"
-            mimetype="application/vnd.debian.binary-package"
+            output_name="linux-build.zip"
+            mimetype="application/zip"
           fi
           echo "OUTPUT_NAME=$output_name" >> $GITHUB_ENV
           echo "MIMETYPE=$mimetype" >> $GITHUB_ENV
@@ -114,7 +133,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ needs.create_release_info.outputs.upload_url }} 
-        asset_path: ./aseprite/build/bin/aseprite
+        asset_path: ./aseprite/build/build.zip
         asset_name: ${{ env.OUTPUT_NAME }}
         asset_content_type: ${{ env.MIMETYPE }}
 
@@ -122,4 +141,4 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: ${{ env.OUTPUT_NAME }}
-        path: ./aseprite/build/bin/aseprite
+        path: ./aseprite/build/build.zip
