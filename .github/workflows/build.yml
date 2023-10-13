@@ -109,8 +109,8 @@ jobs:
     - name: Set Output Variable
       id: set_output
       run: |
-        echo "::set-output name=output_name::${{ env.OUTPUT_NAME }}"
-        echo "::set-output name=output_name::${{ env.MIMETYPE }}"
+        echo "output_name=${{ env.OUTPUT_NAME }}" >> $GITHUB_OUTPUT
+        echo "mimetype=${{ env.MIMETYPE }}" >> $GITHUB_OUTPUT
 
     - name: Upload Release Asset
       id: upload-release-asset 
