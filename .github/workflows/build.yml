@@ -1,0 +1,132 @@
+name: build
+on: [push]
+jobs:
+
+  create_release_info:
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+    - name: Generate release tag
+      id: generate_release_tag
+      uses: amitsingh-007/next-release-tag@v4.0.0
+      with: 
+        github_token: '${{ secrets.GITHUB_TOKEN }}'
+        tag_prefix: v
+        tag_template: yyyy.build.i # year, build, iteration
+
+    - name: Create Release
+      uses: actions/create-release@v1
+      id: create_release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.generate_release_tag.outputs.next_release_tag }}
+        release_name: Release ${{ steps.generate_release_tag.outputs.next_release_tag }}
+
+  build:
+    runs-on: ${{ matrix.os }}
+    needs:
+        - create_release_info
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+        build_type: [RelWithDebInfo, Debug]
+        enable_ui: [off]
+        include:
+          - os: ubuntu-latest
+            build_type: Debug
+            enable_ui: on
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: 'recursive'
+
+    - name: Clone External Repository
+      run: |
+          git clone https://github.com/aseprite/aseprite.git
+      env:
+          GIT_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: ccache
+      uses: hendrikmuhs/ccache-action@v1
+      if: ${{ runner.os == 'Linux' || runner.os == 'macOS' }}
+      with:
+        key: ${{ matrix.os }}-${{ matrix.enable_ui }}-${{ matrix.build_type }}
+
+    - uses: turtlesec-no/get-ninja@main
+    - uses: ilammy/msvc-dev-cmd@v1
+      if: runner.os == 'Windows'
+    - name: Workaround for windows-2022 and cmake 3.25.0
+      if: runner.os == 'Windows'
+      shell: bash
+      run: rm -rf C:/Strawberry/
+    - name: Install Dependencies
+      shell: bash
+      run: |
+        if [[ "${{ runner.os }}" == "Linux" ]] ; then
+          sudo apt-get update -qq
+          sudo apt-get install -y \
+            libx11-dev libxcursor-dev libxi-dev
+        fi
+
+    - name: Generating Makefiles
+      shell: bash
+      run: |
+        cd aseprite
+        if [[ "${{ runner.os }}" == "Windows" ]] ; then
+          export enable_ccache=off
+        else
+          export enable_ccache=on
+        fi
+        cmake -S . -B build -G Ninja \
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+          -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 \
+          -DENABLE_TESTS=ON \
+          -DENABLE_UI=${{ matrix.enable_ui }} \
+          -DENABLE_CCACHE=$enable_ccache
+    - name: Compiling
+      shell: bash
+      run: |
+        cd aseprite 
+        cd build && ninja
+
+    - name: Package Name
+      run: |
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+            output_name="asepriet.dmg"
+            mimetype="application/octet-stream"
+          elif [[ "$RUNNER_OS" == "Windows" ]]; then
+            output_name="asprite.exe"
+            mimetype="application/vnd.microsoft.portable-executable"
+          elif [[ "$RUNNER_OS" == "Linux" ]]; then
+            output_name="aseprite.deb"
+            mimetype="application/vnd.debian.binary-package"
+          fi
+          echo "OUTPUT_NAME=$output_name" >> $GITHUB_ENV
+          echo "MIMETYPE=$mimetype" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Set Output Variable
+      id: set_output
+      run: |
+        echo "::set-output name=output_name::${{ env.OUTPUT_NAME }}"
+        echo "::set-output name=output_name::${{ env.MIMETYPE }}"
+
+    - name: Upload Release Asset
+      id: upload-release-asset 
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create_release_info.outputs.upload_url }} 
+        asset_path: ./aseprite/${{ steps.set_output.outputs.output_name }}
+        asset_name: ${{ steps.set_output.outputs.output_name }}
+        asset_content_type: ${{ steps.set_output.outputs.mimetype }}
+
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ steps.set_output.outputs.output_name }}
+        path: ./aseprite/${{ steps.set_output.outputs.output_name }}
