@@ -119,7 +119,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ needs.create_release_info.outputs.upload_url }} 
-        asset_path: $PWD/aseprite/build/bin/aseprite
+        asset_path: ./aseprite/build/bin/aseprite
         asset_name: ${{ steps.set_output.outputs.output_name }}
         asset_content_type: ${{ steps.set_output.outputs.mimetype }}
 
@@ -127,4 +127,4 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: ${{ steps.set_output.outputs.output_name }}
-        path: $PWD/aseprite/build/bin/aseprite
+        path: ./aseprite/build/bin/aseprite
