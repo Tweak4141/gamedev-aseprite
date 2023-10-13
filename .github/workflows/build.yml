@@ -94,19 +94,19 @@ jobs:
     - name: Create release archive
       if: runner.os == 'Linux'
       run: |
-        cd ./aseprite/build/
+        cd ./aseprite/build/bin/
         zip -r build.zip *
       
     - name: Create release archive
       if: runner.os == 'Windows'
       run: |
-        cd ./aseprite/build/
+        cd ./aseprite/build/bin/
         powershell Compress-Archive -Path . -DestinationPath build.zip
       
     - name: Create release archive
       if: runner.os == 'macOS'
       run: |
-        cd ./aseprite/build/
+        cd ./aseprite/build/bin/
         zip -r build.zip *
   
 
@@ -133,7 +133,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ needs.create_release_info.outputs.upload_url }} 
-        asset_path: ./aseprite/build/build.zip
+        asset_path: ./aseprite/build/bin/build.zip
         asset_name: ${{ env.OUTPUT_NAME }}
         asset_content_type: ${{ env.MIMETYPE }}
 
@@ -141,4 +141,4 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: ${{ env.OUTPUT_NAME }}
-        path: ./aseprite/build/build.zip
+        path: ./aseprite/build/bin/build.zip
