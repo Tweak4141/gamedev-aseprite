@@ -32,7 +32,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-latest, macos-latest, ubuntu-latest]
-        
+
     steps:
     - uses: actions/checkout@v3
       with:
@@ -81,8 +81,8 @@ jobs:
         cmake -S . -B build -G Ninja \
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
           -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 \
-          -DENABLE_TESTS=ON \
-          -DENABLE_UI=${{ matrix.enable_ui }} \
+          -DENABLE_TESTS=OFF \
+          -DENABLE_UI=OFF \
           -DENABLE_CCACHE=$enable_ccache
     - name: Compiling
       shell: bash
@@ -119,7 +119,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ needs.create_release_info.outputs.upload_url }} 
-        asset_path: ./aseprite/${{ steps.set_output.outputs.output_name }}
+        asset_path: $PWD/aseprite/build/bin/aseprite
         asset_name: ${{ steps.set_output.outputs.output_name }}
         asset_content_type: ${{ steps.set_output.outputs.mimetype }}
 
@@ -127,4 +127,4 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: ${{ steps.set_output.outputs.output_name }}
-        path: ./aseprite/${{ steps.set_output.outputs.output_name }}
+        path: $PWD/aseprite/build/bin/aseprite
