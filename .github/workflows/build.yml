@@ -32,12 +32,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-latest, macos-latest, ubuntu-latest]
-        build_type: [RelWithDebInfo, Debug]
-        enable_ui: [off]
-        include:
-          - os: ubuntu-latest
-            build_type: Debug
-            enable_ui: on
+        
     steps:
     - uses: actions/checkout@v3
       with:
@@ -46,6 +41,8 @@ jobs:
     - name: Clone External Repository
       run: |
           git clone https://github.com/aseprite/aseprite.git
+          cd aseprite
+          git submodule update --init --recursive
       env:
           GIT_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -74,6 +71,7 @@ jobs:
     - name: Generating Makefiles
       shell: bash
       run: |
+        ls -a
         cd aseprite
         if [[ "${{ runner.os }}" == "Windows" ]] ; then
           export enable_ccache=off
