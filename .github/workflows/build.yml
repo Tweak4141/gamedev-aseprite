@@ -58,6 +58,7 @@ jobs:
       - name: Download and Extract Skia Binaries (Windows)
         if: runner.os == 'Windows'
         run: |
+          $ProgressPreference = 'SilentlyContinue'
           Invoke-WebRequest -Uri https://github.com/aseprite/skia/releases/download/m102-861e4743af/Skia-Windows-Release-x64.zip -OutFile skia-win.zip
           mkdir C:\deps\skia
           Expand-Archive -Path skia-win.zip -DestinationPath C:\deps\skia
