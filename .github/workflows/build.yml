@@ -60,8 +60,8 @@ jobs:
         run: |
           $ProgressPreference = 'SilentlyContinue'
           Invoke-WebRequest -Uri https://github.com/aseprite/skia/releases/download/m102-861e4743af/Skia-Windows-Release-x64.zip -OutFile skia-win.zip
-          mkdir C:\deps\skia
-          Expand-Archive -Path skia-win.zip -DestinationPath C:\deps\skia
+          mkdir D:\deps\skia
+          Expand-Archive -Path skia-win.zip -DestinationPath D:\deps\skia
         shell: powershell
 
       - name: Download and Extract Skia Binaries (macOS)
@@ -108,7 +108,7 @@ jobs:
           cd build
           if [[ ${{ runner.os }} == "Windows" ]]; then
             export enable_ccache=off
-            cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DLAF_BACKEND=skia -DSKIA_DIR=C:\deps\skia -DSKIA_LIBRARY_DIR=C:\deps\skia\out\Release-x64 -DSKIA_LIBRARY=C:\deps\skia\out\Release-x64\skia.lib -G Ninja ..
+            cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DLAF_BACKEND=skia -DSKIA_DIR=D:\deps\skia -DSKIA_LIBRARY_DIR=D:\deps\skia\out\Release-x64 -DSKIA_LIBRARY=D:\deps\skia\out\Release-x64\skia.lib -G Ninja ..
           elif [[ ${{ runner.os }} == "macOS" ]]; then
             export enable_ccache=on
             export MACOS_SYSROOT="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
