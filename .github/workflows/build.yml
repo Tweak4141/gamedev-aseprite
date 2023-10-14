@@ -90,6 +90,11 @@ jobs:
         shell: bash
         run: rm -rf C:/Strawberry/
 
+      - name: Set Visual Studio Arch
+        if: ${{ runner.os == 'Windows' }}
+        shell: cmd
+        run: call "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\Tools\VsDevCmd.bat" -arch=x64
+
       - name: Install Dependencies
         shell: bash
         run: |
