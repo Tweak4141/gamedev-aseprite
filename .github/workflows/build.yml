@@ -134,13 +134,54 @@ jobs:
           cd aseprite
           cd build && ninja aseprite
 
-      - name: Create release archive
-        if: runner.os == 'Linux' || runner.os == 'Windows' || runner.os == 'macOS'
-        run: |
-          cd ./aseprite/build/bin/
-          zip -r build.zip *
-      
       - name: Package Name
         run: |
-            if [[ ${{ runner.os }} == "macOS" ]]; then
-              output_name="macos-build
+              if [[ ${{ runner.os }} == "macOS" ]]; then
+                output_name="macos-build.zip"
+                mimetype="application/zip"
+              elif [[ ${{ runner.os }} == "Windows" ]]; then
+                output_name="windows-build.zip"
+                mimetype="application/zip"
+              elif [[ ${{ runner.os }} == "Linux" ]]; then
+                output_name="linux-build.zip"
+                mimetype="application/zip"
+              fi
+              echo "OUTPUT_NAME=$output_name" >> $GITHUB_ENV
+              echo "MIMETYPE=$mimetype" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Create release archive
+        if: runner.os == 'Linux'
+        run: |
+            cd ./aseprite/build/bin/
+            zip -r build.zip *
+        
+      - name: Create release archive
+        if: runner.os == 'Windows'
+        run: |
+            cd ./aseprite/build/bin/
+            Compress-Archive -Path . -DestinationPath build.zip
+        shell: powershell
+
+      - name: Create release archive
+        if: runner.os == 'macOS'
+        run: |
+            cd ./aseprite/build/bin/
+            zip -r build.zip *
+          
+      - name: Upload Release Asset
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create_release_info.outputs.upload_url }} 
+          asset_path: ./aseprite/build/bin/${{ env.OUTPUT_NAME }}
+          asset_name: ${{ env.OUTPUT_NAME }}
+          asset_content_type: ${{ env.MIMETYPE }}   
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v2
+        with:
+            name: ${{ env.OUTPUT_NAME }}
+            path: ./aseprite/build/bin/${{ env.OUTPUT_NAME }}
