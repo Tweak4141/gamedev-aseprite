@@ -51,7 +51,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           curl -L -o skia-linux.zip https://github.com/aseprite/skia/releases/download/m102-861e4743af/Skia-Linux-Release-x64-libc++.zip
-          mkdir -r $HOME/deps/skia
+          mkdir -p $HOME/deps/skia
           unzip -o skia-linux.zip -d $HOME/deps/skia
         shell: bash
 
@@ -67,7 +67,7 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           curl -L -o skia-mac.zip https://github.com/aseprite/skia/releases/download/m102-861e4743af/Skia-macOS-Release-x64.zip
-          mkdir -r $HOME/deps/skia
+          mkdir -p $HOME/deps/skia
           unzip -o skia-mac.zip -d $HOME/deps/skia
         shell: bash
 
