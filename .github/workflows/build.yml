@@ -68,7 +68,7 @@ jobs:
         run: |
           curl -L -o skia-mac.zip https://github.com/aseprite/skia/releases/download/m102-861e4743af/Skia-macOS-Release-x64.zip
           mkdir -r $HOME/deps/skia
-          unzip -o skia-mac.zip -d $HOME/deps
+          unzip -o skia-mac.zip -d $HOME/deps/skia
         shell: bash
 
       - name: CCache Setup
@@ -117,15 +117,15 @@ jobs:
               -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 \
               -DCMAKE_OSX_SYSROOT=$MACOS_SYSROOT \
               -DLAF_BACKEND=skia \
-              -DSKIA_DIR=$HOME/deps/skia \
-              -DSKIA_LIBRARY_DIR=$HOME/deps/skia/out/Release-x64 \
-              -DSKIA_LIBRARY=$HOME/deps/skia/out/Release-x64/libskia.a \
+              -DSKIA_DIR=../../deps/skia \
+              -DSKIA_LIBRARY_DIR=../../deps/skia/out/Release-x64 \
+              -DSKIA_LIBRARY=../../deps/skia/out/Release-x64/libskia.a \
               -G Ninja ..
           elif [[ ${{ runner.os }} == "Linux" ]]; then
             export enable_ccache=on
             export CC=clang
             export CXX=clang++
-            cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_CXX_FLAGS:STRING=-stdlib=libc++ -DCMAKE_EXE_LINKER_FLAGS:STRING=-stdlib=libc++ -DLAF_BACKEND=skia -DSKIA_DIR=$HOME/deps/skia -DSKIA_LIBRARY_DIR=$HOME/deps/skia/out/Release-x64 -DSKIA_LIBRARY=$HOME/deps/skia/out/Release-x64/libskia.a -G Ninja ..
+            cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_CXX_FLAGS:STRING=-stdlib=libc++ -DCMAKE_EXE_LINKER_FLAGS:STRING=-stdlib=libc++ -DLAF_BACKEND=skia -DSKIA_DIR=../../deps/skia -DSKIA_LIBRARY_DIR=../../deps/skia/out/Release-x64 -DSKIA_LIBRARY=../../deps/skia/out/Release-x64/libskia.a -G Ninja ..
           fi
 
       - name: Compiling
