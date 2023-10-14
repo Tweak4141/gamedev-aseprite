@@ -1,143 +1,137 @@
 name: build
 on: [push]
-jobs:
 
+jobs:
   create_release_info:
     runs-on: ubuntu-latest
     outputs:
       upload_url: ${{ steps.create_release.outputs.upload_url }}
     steps:
-    - name: Generate release tag
-      id: generate_release_tag
-      uses: amitsingh-007/next-release-tag@v4.0.0
-      with: 
-        github_token: '${{ secrets.GITHUB_TOKEN }}'
-        tag_prefix: v
-        tag_template: yyyy.mm.dd.i # year, build, iteration
+      - name: Generate release tag
+        id: generate_release_tag
+        uses: amitsingh-007/next-release-tag@v4.0.0
+        with:
+          github_token: '${{ secrets.GITHUB_TOKEN }}'
+          tag_prefix: v
+          tag_template: yyyy.mm.dd.i # year, build, iteration
 
-    - name: Create Release
-      uses: actions/create-release@v1
-      id: create_release
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ steps.generate_release_tag.outputs.next_release_tag }}
-        release_name: Release ${{ steps.generate_release_tag.outputs.next_release_tag }}
+      - name: Create Release
+        uses: actions/create-release@v1
+        id: create_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.generate_release_tag.outputs.next_release_tag }}
+          release_name: Release ${{ steps.generate_release_tag.outputs.next_release_tag }}
 
   build:
     runs-on: ${{ matrix.os }}
     needs:
-        - create_release_info
+      - create_release_info
     strategy:
       fail-fast: false
       matrix:
         os: [windows-latest, macos-latest, ubuntu-latest]
 
     steps:
-    - uses: actions/checkout@v3
-      with:
-        submodules: 'recursive'
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
 
-    - name: Clone External Repository
-      run: |
+      - name: Clone External Repository
+        run: |
           git clone https://github.com/aseprite/aseprite.git
           cd aseprite
           git submodule update --init --recursive
-      env:
+        env:
           GIT_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: ccache
-      uses: hendrikmuhs/ccache-action@v1
-      if: ${{ runner.os == 'Linux' || runner.os == 'macOS' }}
-      with:
-        key: ${{ matrix.os }}-${{ matrix.enable_ui }}-${{ matrix.build_type }}
-
-    - uses: turtlesec-no/get-ninja@main
-    - uses: ilammy/msvc-dev-cmd@v1
-      if: runner.os == 'Windows'
-    - name: Workaround for windows-2022 and cmake 3.25.0
-      if: runner.os == 'Windows'
-      shell: bash
-      run: rm -rf C:/Strawberry/
-    - name: Install Dependencies
-      shell: bash
-      run: |
-        if [[ "${{ runner.os }}" == "Linux" ]] ; then
-          sudo apt-get update -qq
-          sudo apt-get install -y \
-            libx11-dev libxcursor-dev libxi-dev
-        fi
-
-    - name: Generating Makefiles
-      shell: bash
-      run: |
-        ls -a
-        cd aseprite
-        if [[ "${{ runner.os }}" == "Windows" ]] ; then
-          export enable_ccache=off
-        else
-          export enable_ccache=on
-        fi
-        cmake -S . -B build -G Ninja \
-          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-          -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 \
-          -DENABLE_UI=ON \
-          -DENABLE_CCACHE=$enable_ccache
-
-    - name: Compiling
-      shell: bash
-      run: |
-        cd aseprite 
-        cd build && ninja
-    
-    - name: Create release archive
-      if: runner.os == 'Linux'
-      run: |
-        cd ./aseprite/build/bin/
-        zip -r build.zip *
-      
-    - name: Create release archive
-      if: runner.os == 'Windows'
-      run: |
-        cd ./aseprite/build/bin/
-        powershell Compress-Archive -Path . -DestinationPath build.zip
-      
-    - name: Create release archive
-      if: runner.os == 'macOS'
-      run: |
-        cd ./aseprite/build/bin/
-        zip -r build.zip *
-  
-
-    - name: Package Name
-      run: |
+      - name: Download Skia Binaries
+        run: |
           if [[ ${{ runner.os }} == "macOS" ]]; then
-            output_name="macos-build.zip"
-            mimetype="application/zip"
-          elif [[ ${{ runner.os }} == "Windows" ]]; then
-            output_name="windows-build.zip"
-            mimetype="application/zip"
+            curl -L -o skia-mac.zip https://github.com/aseprite/skia-binaries/releases/download/latest/Skia-macOS-Release-x64.zip
+            mkdir $HOME/deps
+            unzip -o skia-mac.zip -d $HOME/deps
           elif [[ ${{ runner.os }} == "Linux" ]]; then
-            output_name="linux-build.zip"
-            mimetype="application/zip"
+            curl -L -o skia-linux.zip https://github.com/aseprite/skia-binaries/releases/download/latest/Skia-Linux-Release-x64-libc++.zip
+            mkdir $HOME/deps
+            unzip -o skia-linux.zip -d $HOME/deps
+          elif [[ ${{ runner.os }} == "Windows" ]]; then
+            curl -L -o skia-win.zip https://github.com/aseprite/skia-binaries/releases/download/latest/Skia-Windows-Release-x64.zip
+            mkdir C:\deps
+            Expand-Archive -Path skia-win.zip -DestinationPath C:\deps
           fi
-          echo "OUTPUT_NAME=$output_name" >> $GITHUB_ENV
-          echo "MIMETYPE=$mimetype" >> $GITHUB_ENV
-      shell: bash
+        shell: bash
 
-    - name: Upload Release Asset
-      id: upload-release-asset 
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ needs.create_release_info.outputs.upload_url }} 
-        asset_path: ./aseprite/build/bin/build.zip
-        asset_name: ${{ env.OUTPUT_NAME }}
-        asset_content_type: ${{ env.MIMETYPE }}
+      - name: CCache Setup
+        uses: hendrikmuhs/ccache-action@v1
+        if: ${{ runner.os == 'Linux' || runner.os == 'macOS' }}
+        with:
+          key: ${{ matrix.os }}-${{ matrix.enable_ui }}-${{ matrix.build_type }}
 
-    - name: Upload Build Artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: ${{ env.OUTPUT_NAME }}
-        path: ./aseprite/build/bin/build.zip
+      - name: Setup Ninja
+        uses: turtlesec-no/get-ninja@main
+
+      - name: MSVC Setup
+        uses: ilammy/msvc-dev-cmd@v1
+        if: ${{ runner.os == 'Windows' }}
+
+      - name: Workaround for Windows-2022 and CMake 3.25.0
+        if: ${{ runner.os == 'Windows' }}
+        shell: bash
+        run: rm -rf C:/Strawberry/
+
+      - name: Install Dependencies
+        shell: bash
+        run: |
+          if [[ ${{ runner.os }} == "Linux" ]]; then
+            sudo apt-get update -qq
+            sudo apt-get install -y \
+              g++ clang libc++-dev libc++abi-dev cmake ninja-build libx11-dev libxcursor-dev libxi-dev libgl1-mesa-dev libfontconfig1-dev
+          fi
+
+      - name: Generating Makefiles
+        shell: bash
+        run: |
+          ls -a
+          cd aseprite
+          if [[ ${{ runner.os }} == "Windows" ]]; then
+            export enable_ccache=off
+            cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DLAF_BACKEND=skia -DSKIA_DIR=C:\deps\skia -DSKIA_LIBRARY_DIR=C:\deps\skia\out\Release-x64 -DSKIA_LIBRARY=C:\deps\skia\out\Release-x64\skia.lib -G Ninja ..
+          elif [[ ${{ runner.os }} == "macOS" ]]; then
+            export enable_ccache=on
+            export MACOS_SYSROOT="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
+            cmake \
+              -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+              -DCMAKE_OSX_ARCHITECTURES=x86_64 \
+              -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 \
+              -DCMAKE_OSX_SYSROOT=$MACOS_SYSROOT \
+              -DLAF_BACKEND=skia \
+              -DSKIA_DIR=$HOME/deps/skia \
+              -DSKIA_LIBRARY_DIR=$HOME/deps/skia/out/Release-x64 \
+              -DSKIA_LIBRARY=$HOME/deps/skia/out/Release-x64/libskia.a \
+              -G Ninja ..
+          elif [[ ${{ runner.os }} == "Linux" ]]; then
+            export enable_ccache=on
+            export CC=clang
+            export CXX=clang++
+            cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_CXX_FLAGS:STRING=-stdlib=libc++ -DCMAKE_EXE_LINKER_FLAGS:STRING=-stdlib=libc++ -DLAF_BACKEND=skia -DSKIA_DIR=$HOME/deps/skia -DSKIA_LIBRARY_DIR=$HOME/deps/skia/out/Release-x64 -DSKIA_LIBRARY=$HOME/deps/skia/out/Release-x64/libskia.a -G Ninja ..
+          fi
+
+      - name: Compiling
+        shell: bash
+        run: |
+          cd aseprite
+          cd build && ninja aseprite
+
+      - name: Create release archive
+        if: runner.os == 'Linux' || runner.os == 'Windows' || runner.os == 'macOS'
+        run: |
+          cd ./aseprite/build/bin/
+          zip -r build.zip *
+      
+      - name: Package Name
+        run: |
+            if [[ ${{ runner.os }} == "macOS" ]]; then
+              output_name="macos-build
