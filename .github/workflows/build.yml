@@ -96,7 +96,7 @@ jobs:
         run: call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\VsDevCmd.bat" -arch=x64
 
       - name: Check for dependencies (Windows)
-        if: ${{ runner.os == 'Windows '}}
+        if: ${{ runner.os == 'Windows' }}
         run: |
           $folderPath = "C:\deps\skia"
           if (Test-Path -Path $folderPath -PathType Container) {
