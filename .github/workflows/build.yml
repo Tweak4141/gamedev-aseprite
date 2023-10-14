@@ -104,9 +104,11 @@ jobs:
           ls -a
           cd aseprite
           if [[ ${{ runner.os }} == "Windows" ]]; then
+            cd aseprite
             export enable_ccache=off
-            cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DLAF_BACKEND=skia -DSKIA_DIR=C:\deps\skia -DSKIA_LIBRARY_DIR=C:\deps\skia\out\Release-x64 -DSKIA_LIBRARY=C:\deps\skia\out\Release-x64\skia.lib -G Ninja ..
+            cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DLAF_BACKEND=skia -DSKIA_DIR=C:\deps\skia -DSKIA_LIBRARY_DIR=C:\deps\skia\out\Release-x64 -DSKIA_LIBRARY=C:\deps\skia\out\Release-x64\skia.lib -G Ninja .
           elif [[ ${{ runner.os }} == "macOS" ]]; then
+            cd aseprite
             export enable_ccache=on
             export MACOS_SYSROOT="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
             cmake \
@@ -118,12 +120,13 @@ jobs:
               -DSKIA_DIR=$HOME/deps/skia \
               -DSKIA_LIBRARY_DIR=$HOME/deps/skia/out/Release-x64 \
               -DSKIA_LIBRARY=$HOME/deps/skia/out/Release-x64/libskia.a \
-              -G Ninja ..
+              -G Ninja .
           elif [[ ${{ runner.os }} == "Linux" ]]; then
+            cd aseprite
             export enable_ccache=on
             export CC=clang
             export CXX=clang++
-            cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_CXX_FLAGS:STRING=-stdlib=libc++ -DCMAKE_EXE_LINKER_FLAGS:STRING=-stdlib=libc++ -DLAF_BACKEND=skia -DSKIA_DIR=$HOME/deps/skia -DSKIA_LIBRARY_DIR=$HOME/deps/skia/out/Release-x64 -DSKIA_LIBRARY=$HOME/deps/skia/out/Release-x64/libskia.a -G Ninja ..
+            cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_CXX_FLAGS:STRING=-stdlib=libc++ -DCMAKE_EXE_LINKER_FLAGS:STRING=-stdlib=libc++ -DLAF_BACKEND=skia -DSKIA_DIR=$HOME/deps/skia -DSKIA_LIBRARY_DIR=$HOME/deps/skia/out/Release-x64 -DSKIA_LIBRARY=$HOME/deps/skia/out/Release-x64/libskia.a -G Ninja .
           fi
 
       - name: Compiling
