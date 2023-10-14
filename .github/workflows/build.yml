@@ -90,10 +90,22 @@ jobs:
         shell: bash
         run: rm -rf C:/Strawberry/
 
-      - name: Set Visual Studio Arch
+      - name: Set VS Arch
         if: ${{ runner.os == 'Windows' }}
         shell: cmd
         run: call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\VsDevCmd.bat" -arch=x64
+
+      - name: Check for dependencies (Windows)
+        if: ${{ runner.os == 'Windows '}}
+        run: |
+          $folderPath = "C:\deps\skia"
+          if (Test-Path -Path $folderPath -PathType Container) {
+            Write-Host "Folder $folderPath exists."
+            Write-Host "Files in the folder:"
+            Get-ChildItem -Path $folderPath
+          } else {
+            Write-Host "Folder $folderPath does not exist."
+          }
 
       - name: Install Dependencies
         shell: bash
@@ -164,20 +176,20 @@ jobs:
               echo "MIMETYPE=$mimetype" >> $GITHUB_ENV
         shell: bash
 
-      - name: Create release archive
+      - name: Create release archive (Linux)
         if: runner.os == 'Linux'
         run: |
             cd ./aseprite/build/bin/
             zip -r build.zip *
         
-      - name: Create release archive
+      - name: Create release archive (Windows)
         if: runner.os == 'Windows'
         run: |
             cd ./aseprite/build/bin/
             Compress-Archive -Path . -DestinationPath build.zip
         shell: powershell
 
-      - name: Create release archive
+      - name: Create release archive (macOS)
         if: runner.os == 'macOS'
         run: |
             cd ./aseprite/build/bin/
