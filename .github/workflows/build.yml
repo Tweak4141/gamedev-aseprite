@@ -50,7 +50,7 @@ jobs:
       - name: Download and Extract Skia Binaries (Linux)
         if: runner.os == 'Linux'
         run: |
-          curl -L -o skia-linux.zip https://github.com/aseprite/skia-binaries/releases/download/latest/Skia-Linux-Release-x64-libc++.zip
+          curl -L -o skia-linux.zip https://github.com/aseprite/skia/releases/download/m102-861e4743af/Skia-Linux-Release-x64-libc++.zip
           mkdir $HOME/deps
           unzip -o skia-linux.zip -d $HOME/deps
         shell: bash
@@ -58,7 +58,7 @@ jobs:
       - name: Download and Extract Skia Binaries (Windows)
         if: runner.os == 'Windows'
         run: |
-          Invoke-WebRequest -Uri https://github.com/aseprite/skia-binaries/releases/download/latest/Skia-Windows-Release-x64.zip -OutFile skia-win.zip
+          Invoke-WebRequest -Uri https://github.com/aseprite/skia/releases/download/m102-861e4743af/Skia-Windows-Release-x64.zip -OutFile skia-win.zip
           mkdir C:\deps
           Expand-Archive -Path skia-win.zip -DestinationPath C:\deps
         shell: powershell
@@ -66,7 +66,7 @@ jobs:
       - name: Download and Extract Skia Binaries (macOS)
         if: runner.os == 'macOS'
         run: |
-          curl -L -o skia-mac.zip https://github.com/aseprite/skia-binaries/releases/download/latest/Skia-macOS-Release-x64.zip
+          curl -L -o skia-mac.zip https://github.com/aseprite/skia/releases/download/m102-861e4743af/Skia-macOS-Release-x64.zip
           mkdir $HOME/deps
           unzip -o skia-mac.zip -d $HOME/deps
         shell: bash
