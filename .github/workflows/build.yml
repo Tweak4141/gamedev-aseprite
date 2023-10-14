@@ -60,8 +60,8 @@ jobs:
         run: |
           $ProgressPreference = 'SilentlyContinue'
           Invoke-WebRequest -Uri https://github.com/aseprite/skia/releases/download/m102-861e4743af/Skia-Windows-Release-x64.zip -OutFile skia-win.zip
-          mkdir C:\deps\skia
-          Expand-Archive -Path skia-win.zip -DestinationPath C:\deps\skia
+          mkdir C:\dependencies\skia
+          Expand-Archive -Path skia-win.zip -DestinationPath C:\dependencies\skia
         shell: powershell
 
       - name: Download and Extract Skia Binaries (macOS)
@@ -98,7 +98,7 @@ jobs:
       - name: Check for dependencies (Windows)
         if: ${{ runner.os == 'Windows' }}
         run: |
-          $folderPath = "C:\deps\skia"
+          $folderPath = "C:\dependencies\skia"
           if (Test-Path -Path $folderPath -PathType Container) {
             Write-Host "Folder $folderPath exists."
             Write-Host "Files in the folder:"
@@ -125,7 +125,7 @@ jobs:
           cd build
           if [[ ${{ runner.os }} == "Windows" ]]; then
             export enable_ccache=off
-            cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_IGNORE_PATH=C:\MinGW\bin -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DLAF_BACKEND=skia -DSKIA_DIR=C:\deps\skia -DSKIA_LIBRARY_DIR=C:\deps\skia\out\Release-x64 -DSKIA_LIBRARY=C:\deps\skia\out\Release-x64\skia.lib -G Ninja ..
+            cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_IGNORE_PATH=C:\MinGW\bin -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DLAF_BACKEND=skia -DSKIA_DIR=C:\dependencies\skia -DSKIA_LIBRARY_DIR=C:\dependencies\skia\out\Release-x64 -DSKIA_LIBRARY=C:\dependencies\skia\out\Release-x64\skia.lib -G Ninja ..
           elif [[ ${{ runner.os }} == "macOS" ]]; then
             export enable_ccache=on
             export MACOS_SYSROOT="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
