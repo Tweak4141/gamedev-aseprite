@@ -190,7 +190,8 @@ jobs:
       - name: Create release archive (Windows)
         if: runner.os == 'Windows'
         run: |
-            cd ./aseprite/build/bin/
+            Copy-Item -Path '.\libcrypto-3-x64.dll' -Destination '.\aseprite\build\bin\' -Force
+            cd .\aseprite\build\bin\
             Compress-Archive -Path . -DestinationPath build.zip
         shell: powershell
 
