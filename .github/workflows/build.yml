@@ -90,11 +90,6 @@ jobs:
         shell: bash
         run: rm -rf C:/Strawberry/
 
-      - name: Set VS Arch
-        if: ${{ runner.os == 'Windows' }}
-        shell: cmd
-        run: call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\VsDevCmd.bat" -arch=x64
-
       - name: Check for dependencies (Windows)
         if: ${{ runner.os == 'Windows' }}
         run: |
@@ -116,8 +111,20 @@ jobs:
               g++ clang libc++-dev libc++abi-dev cmake ninja-build libx11-dev libxcursor-dev libxi-dev libgl1-mesa-dev libfontconfig1-dev
           fi
 
+      - name: Generating Makefiles (Windows)
+        shell: cmd
+        if: runner.os == 'Windows'
+        run: |
+          cd aseprite
+          mkdir build
+          cd build
+          export enable_ccache=off
+          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\VsDevCmd.bat" -arch=x64
+          cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_IGNORE_PATH=C:\MinGW\bin -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DLAF_BACKEND=skia -DSKIA_DIR=C:\dependencies\skia -DSKIA_LIBRARY_DIR=C:\dependencies\skia\out\Release-x64 -DSKIA_LIBRARY=C:\dependencies\skia\out\Release-x64\skia.lib -G Ninja ..
+      
       - name: Generating Makefiles
         shell: bash
+        if: runner.os != 'Windows'
         run: |
           ls -a
           cd aseprite
