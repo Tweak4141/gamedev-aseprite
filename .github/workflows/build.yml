@@ -119,7 +119,7 @@ jobs:
           cd aseprite
           mkdir build
           cd build
-          export enable_ccache=off
+          export enable_ccache=on
           call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\VsDevCmd.bat" -arch=x64
           cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_IGNORE_PATH=C:\MinGW\bin -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DLAF_BACKEND=skia -DSKIA_DIR=C:\dependencies\skia -DSKIA_LIBRARY_DIR=C:\dependencies\skia\out\Release-x64 -DSKIA_LIBRARY=C:\dependencies\skia\out\Release-x64\skia.lib -G Ninja ..
       
