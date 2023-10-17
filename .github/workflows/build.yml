@@ -217,6 +217,20 @@ jobs:
         if: runner.os == 'Linux'
         with:
           ruby-version: 2.6
+      - name: Generate aseprite_preinst.sh
+        if: runner.os == 'Linux'
+        run: |
+         cd ./aseprite/build/bin/
+         echo '#!/bin/bash' > ./aseprite_preinst.sh && echo 'mkdir -p /usr/share/aseprite' >> ./aseprite_preinst.sh
+
+      - name: Generate aseprite_postinst.sh
+        if: runner.os == 'Linux'
+        run: |
+          cd ./aseprite/build/bin/
+          echo '#!/bin/bash' > ./aseprite_postinst.sh
+          echo '/usr/share/aseprite/aseprite "$@"' >> ./aseprite_postinst.sh
+          echo 'chmod +x /usr/bin/aseprite' >> ./aseprite_postinst.sh
+
       - name: Create packages
         if: runner.os == 'Linux'
         run: |
@@ -225,16 +239,21 @@ jobs:
               cd ./aseprite/build/bin/
               fpm \
               -s dir -t deb \
-              -p aseprite-0.1.0-1-any.deb \
-              --name aseprite \
-              --license custom \
-              --version 0.1.0 \
+              -n aseprite \
+              -v 0.1.0 \
+              --iteration 1 \
               --architecture all \
-              --description "aseprite" \
+              --depends "bash" \
+              --description "Aseprite" \
               --url "https://github.com/Tweak4141/gamedev-aseprite" \
               --maintainer "tweak@talosbot.xyz" \
-              --prefix /usr/bin/aseprite \
-              aseprite=/usr/bin/aseprite/aseprite
+              -p aseprite-0.1.0-1-any.deb \
+              -C ./aseprite/build/ \
+              -d "bash" \
+              --prefix /usr/share/aseprite/ \
+              --before-install aseprite_preinst.sh \
+              -e bin \
+              --after-install aseprite_postinst.sh
 
       - name: List package Files
         if: runner.os == 'Linux'
