@@ -212,6 +212,39 @@ jobs:
           asset_name: ${{ env.OUTPUT_NAME }}
           asset_content_type: ${{ env.MIMETYPE }}   
 
+      - name: Create packages
+        if: runner.os == 'Linux'
+        run: |
+              gem install fpm
+              apt-get install squashfs-tools
+              fpm \
+              -s ./aseprite/build/bin/ -t deb \
+              -p aseprite-0.1.0-1-any.deb \
+              --name aseprite \
+              --license custom \
+              --version 0.1.0 \
+              --architecture all \
+              --description "aseprite" \
+              --url "https://github.com/Tweak4141/gamedev-aseprite" \
+              --maintainer "tweak@talosbot.xyz" \
+              aseprite=/usr/bin/aseprite
+
+      - name: List package Files
+        run: |
+          find . -type f -name "*.deb"
+        id: find-packages
+        shell: bash
+
+      - name: Upload Release Packages
+        id: upload-release-assets
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ needs.create_release_info.outputs.upload_url }}
+          asset_path: ${{ steps.find-packages.outputs.stdout }}
+          asset_name: ${{ steps.find-packages.outputs.stdout }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v2
         with:
