@@ -251,6 +251,7 @@ jobs:
           upload_url: ${{ needs.create_release_info.outputs.upload_url }}
           asset_path: ./aseprite/build/bin/aseprite-0.1.0-1-any.deb
           asset_name: aseprite-0.1.0-1-any.deb
+          asset_content_type: application/vnd.debian.binary-package
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
