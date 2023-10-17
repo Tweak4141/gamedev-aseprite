@@ -222,8 +222,9 @@ jobs:
         run: |
               gem install fpm
               sudo apt-get install squashfs-tools
+              cd ./aseprite/build/bin/
               fpm \
-              -s ./aseprite/build/bin/ -t deb \
+              -s dir -t deb \
               -p aseprite-0.1.0-1-any.deb \
               --name aseprite \
               --license custom \
@@ -237,6 +238,7 @@ jobs:
       - name: List package Files
         if: runner.os == 'Linux'
         run: |
+          cd ./aseprite/build/bin/
           find . -type f -name "*.deb"
         id: find-packages
         shell: bash
