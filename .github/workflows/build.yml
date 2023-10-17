@@ -210,8 +210,13 @@ jobs:
           upload_url: ${{ needs.create_release_info.outputs.upload_url }} 
           asset_path: ./aseprite/build/bin/build.zip
           asset_name: ${{ env.OUTPUT_NAME }}
-          asset_content_type: ${{ env.MIMETYPE }}   
+          asset_content_type: ${{ env.MIMETYPE }} 
 
+      - name: "Setup Ruby"
+        uses: ruby/setup-ruby@v1
+        if: runner.os == 'Linux'
+        with:
+          ruby-version: 2.6
       - name: Create packages
         if: runner.os == 'Linux'
         run: |
