@@ -221,7 +221,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
               gem install fpm
-              apt-get install squashfs-tools
+              sudo apt-get install squashfs-tools
               fpm \
               -s ./aseprite/build/bin/ -t deb \
               -p aseprite-0.1.0-1-any.deb \
